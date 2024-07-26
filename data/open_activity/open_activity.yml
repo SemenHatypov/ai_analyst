@@ -1,0 +1,21 @@
+description: Table for storing opened activities from search results
+fields:
+- description: Unique identifier of opening the activity
+  name: id
+  type: integer
+- description: Identifier of the related search
+  name: search_id
+  type: integer
+- description: Identifier of the activity
+  name: activity_id
+  type: integer
+- description: Type of the activity
+  name: activity_type
+  type: string
+- description: Time of the opening the activity
+  name: open_activity_timestamp
+  type: timestamp
+- description: Showed price in USD
+  name: showed_price
+  type: decimal
+table_name: open_activity

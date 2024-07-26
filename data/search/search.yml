@@ -1,0 +1,21 @@
+description: Table for storing user search of destination during the session
+fields:
+- description: Unique identifier of the search
+  name: id
+  type: integer
+- description: Identifier of the related session
+  name: session_id
+  type: integer
+- description: Time of search
+  name: search_timestamp
+  type: timestamp
+- description: Name of the city user searched
+  name: destination_city
+  type: string
+- description: First date of the trip (optional)
+  name: first_date
+  type: date
+- description: Last date of the trip (optional)
+  name: last_date
+  type: date
+table_name: search

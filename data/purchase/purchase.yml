@@ -1,0 +1,24 @@
+description: Table for storing purchaseed activities
+fields:
+- description: Unique identifier of purchase
+  name: id
+  type: integer
+- description: Identifier of the related opening the activity
+  name: open_activity_id
+  type: integer
+- description: Date of booked activity
+  name: activity_date
+  type: date
+- description: Amount of clients booked an activity
+  name: clients_count
+  type: integer
+- description: Paid price in USD
+  name: paid_price
+  type: decimal
+- description: Commission of service in USD
+  name: commision
+  type: decimal
+- description: Time of the opening the activity
+  name: open_activity_timestamp
+  type: timestamp
+table_name: purchase

@@ -1,0 +1,18 @@
+description: Table for storing user sessions
+fields:
+- description: Unique identifier of the session
+  name: id
+  type: integer
+- description: Time of session
+  name: session_timestamp
+  type: timestamp
+- description: Unique identifier of the user
+  name: user_id
+  type: integer
+- description: User location
+  name: user_location
+  type: string
+- description: User device (web/ios/android etc)
+  name: user_device
+  type: string
+table_name: session
