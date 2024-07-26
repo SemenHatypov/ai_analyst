@@ -1,56 +1,60 @@
+import os
+
 import streamlit as st
+import yaml
 from openai import OpenAI
 
-# Show title and description.
-st.title("💬 Chatbot")
+def load_schemas():
+    with open("data/session/session.yml", "r") as file:
+        session_schema = yaml.safe_load(file)
+    with open("data/search/search.yml", "r") as file:
+        search_schema = yaml.safe_load(file)
+    with open("data/open_activity/open_activity.yml", "r") as file:
+        open_activity_schema = yaml.safe_load(file)
+    with open("data/purchase/purchase.yml", "r") as file:
+        purchase_schema = yaml.safe_load(file)
+    return session_schema, search_schema, open_activity_schema, purchase_schema
+
+st.title("💬 AI Analyst")
 st.write(
-    "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate responses. "
-    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
-    "You can also learn how to build this app step by step by [following our tutorial](https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps)."
+    "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate SQL queries based on user's task"
 )
+SYSTEM_CONTENT = "You are an assisnant for analyst. Analyst gives you a task, and you need to give a solution"
 
-# Ask user for their OpenAI API key via `st.text_input`.
-# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
-# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
-openai_api_key = st.text_input("OpenAI API Key", type="password")
-if not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.", icon="🗝️")
-else:
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-    # Create an OpenAI client.
-    client = OpenAI(api_key=openai_api_key)
+schemas = load_schemas()
+schema_info = "\n".join(
+    [yaml.dump(schema, default_flow_style=False) for schema in schemas]
+)
+with st.expander("See database schema"):
+    st.code(schema_info, language="yaml")
 
-    # Create a session state variable to store the chat messages. This ensures that the
-    # messages persist across reruns.
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-    # Display the existing chat messages via `st.chat_message`.
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-    # Create a chat input field to allow the user to enter a message. This will display
-    # automatically at the bottom of the page.
-    if prompt := st.chat_input("What is up?"):
+if prompt := st.chat_input("What is up?"):
 
-        # Store and display the current prompt.
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
-        # Generate a response using the OpenAI API.
-        stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
-        )
+    full_prompt = f"Given the following database schemas:\n{schema_info}\n\nGenerate a SQL query for the following request: {prompt}. You are allowed to use only tables from given database schema only and you can't rename the original table names and columns"
 
-        # Stream the response to the chat using `st.write_stream`, then store it in 
-        # session state.
-        with st.chat_message("assistant"):
-            response = st.write_stream(stream)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+    # Generate a response using the OpenAI API.
+    stream = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": SYSTEM_CONTENT},
+            {"role": "user", "content": full_prompt},
+        ],
+        stream=True,
+    )
+
+    with st.chat_message("assistant"):
+        response = st.write_stream(stream)
+    st.session_state.messages.append({"role": "assistant", "content": response})
